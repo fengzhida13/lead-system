@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>商厨设备 · 智能线索管理</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --p:#1a56db;--pl:#e8f0fe;--s:#059669;--sl:#ecfdf5;--w:#d97706;--wl:#fffbeb;--d:#dc2626;--dl:#fef2f2;
+  --bg:#f1f5f9;--card:#fff;--bd:#e2e8f0;--t:#1e293b;--ts:#64748b;--tm:#94a3b8;
+  --r:10px;--rs:6px;--rx:4px;--sh:0 1px 3px rgba(0,0,0,.08);--shm:0 4px 12px rgba(0,0,0,.08);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+/* LOGIN */
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shm);padding:40px 32px;width:100%;max-width:380px}
+.login-card h1{font-size:22px;text-align:center;margin-bottom:4px}
+.login-card .sub{font-size:13px;color:var(--ts);text-align:center;margin-bottom:28px}
+.login-card input{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:var(--rs);font-size:14px;margin-bottom:14px;outline:none;font-family:inherit}
+.login-card input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
+.login-card .btn{width:100%;padding:11px;font-size:15px;font-weight:600}
+.login-card .tip{font-size:11px;color:var(--tm);text-align:center;margin-top:16px;line-height:1.6}
+/* APP */
+.app{display:none}
+.app.active,.login-page.hidden{display:block}
+.login-page.hidden{display:none}
+/* HEADER */
+.header{background:var(--card);border-bottom:1px solid var(--bd);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.header h1{font-size:16px;font-weight:700}
+.header-right{display:flex;align-items:center;gap:12px}
+.notify-btn{position:relative;background:none;border:none;font-size:20px;cursor:pointer;padding:4px 8px;border-radius:var(--rx)}
+.notify-btn:hover{background:var(--bg)}
+.notify-dot{position:absolute;top:2px;right:2px;width:9px;height:9px;background:var(--d);border-radius:50%;border:2px solid #fff;display:none}
+.notify-dot.show{display:block}
+.user-chip{font-size:13px;color:var(--ts);display:flex;align-items:center;gap:6px}
+/* TABS */
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--bd);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{padding:12px 18px;font-size:13px;font-weight:500;color:var(--ts);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;background:none;border-top:none;border-left:none;border-right:none;flex-shrink:0;font-family:inherit}
+.tab:hover{color:var(--t)}
+.tab.active{color:var(--p);border-bottom-color:var(--p);font-weight:600}
+/* CONTENT */
+.content{padding:16px;max-width:1100px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:var(--rs);padding:14px;box-shadow:var(--sh);text-align:center}
+.stat-num{font-size:24px;font-weight:700}
+.stat-label{font-size:11px;color:var(--ts);margin-top:2px}
+.stat.red .stat-num{color:var(--d)}
+.stat.green .stat-num{color:var(--s)}
+.stat.blue .stat-num{color:var(--p)}
+/* Card */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden}
+.card-hd{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card-hd h3{font-size:14px;font-weight:600}
+.card-bd{padding:0}
+/* Toolbar */
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toolbar select,.toolbar input{padding:6px 10px;border:1px solid var(--bd);border-radius:var(--rx);font-size:12px;color:var(--t);background:#fff;outline:none;font-family:inherit}
+.toolbar input{width:140px}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--rx);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;font-family:inherit;white-space:nowrap;text-decoration:none}
+.btn-p{background:var(--p);color:#fff}.btn-p:hover{background:#1a40b0}
+.btn-o{background:#fff;color:var(--t);border-color:var(--bd)}.btn-o:hover{background:var(--bg)}
+.btn-s{background:var(--s);color:#fff}.btn-s:hover{background:#047857}
+.btn-d{border-color:#fecaca;color:var(--d)}.btn-d:hover{background:var(--dl)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-blk{display:block;width:100%;text-align:center;justify-content:center}
+/* Table */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--ts);background:var(--bg);border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--bd);vertical-align:middle}
+tr:hover{background:#f8fafc}
+.warn-row{background:var(--wl)!important}
+.danger-row{background:var(--dl)!important}
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.badge-a{background:#fee2e2;color:#991b1b}
+.badge-b{background:#fef3c7;color:#92400e}
+.badge-c{background:#dbeafe;color:#1e40af}
+.status{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600}
+.status-新线索{background:#dbeafe;color:#1e40af}
+.status-已联系{background:#fef3c7;color:#92400e}
+.status-沟通中{background:#ede9fe;color:#6b21a8}
+.status-报价中{background:#cffafe;color:#155e75}
+.status-已成交{background:#d1fae5;color:#065f46}
+.status-已丢单{background:#fee2e2;color:#991b1b}
+/* Lead card (mobile) */
+.lead-card{display:none;padding:14px;border-bottom:1px solid var(--bd)}
+.lead-card:last-child{border-bottom:none}
+.lead-card .lc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.lead-card .lc-name{font-size:14px;font-weight:600}
+.lead-card .lc-info{font-size:12px;color:var(--ts)}
+.lead-card .lc-actions{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
+@media(max-width:768px){
+  .table-wrap table{display:none}
+  .lead-card{display:block}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .tabs{gap:0}.tab{padding:12px 12px;font-size:12px}
+  .content{padding:12px}
+  .header{padding:0 12px}
+  .toolbar input{width:110px}
+}
+/* MODAL */
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modal-inner{background:var(--card);border-radius:var(--r);width:100%;max-width:500px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-hd{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-hd h3{font-size:15px}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--tm);padding:2px 6px;border-radius:var(--rx)}
+.modal-bd{padding:16px 18px;flex:1;overflow-y:auto}
+.modal-ft{padding:12px 18px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+/* FORM */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--t);margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:var(--rs);font-size:13px;outline:none;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.fg textarea{resize:vertical;min-height:60px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* Grade tags */
+.grade-tags{display:flex;gap:8px}
+.grade-tag{padding:6px 16px;border:2px solid var(--bd);border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:600;transition:.15s;text-align:center;flex:1}
+.grade-tag:hover{border-color:var(--p)}
+.grade-tag.sel-a{border-color:#ef4444;background:#fef2f2;color:#991b1b}
+.grade-tag.sel-b{border-color:#f59e0b;background:#fffbeb;color:#92400e}
+.grade-tag.sel-c{border-color:#3b82f6;background:#eff6ff;color:#1e40af}
+/* Checkbox pills */
+.check-pills{display:flex;flex-wrap:wrap;gap:8px}
+.check-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--bd);border-radius:20px;cursor:pointer;font-size:12px;transition:.15s;user-select:none}
+.check-pill:hover{border-color:var(--p)}
+.check-pill.checked{background:var(--sl);border-color:var(--s);color:var(--s);font-weight:500}
+.check-pill input{display:none}
+/* Notification toast */
+.toast{position:fixed;top:16px;right:16px;z-index:200;max-width:360px}
+.toast-item{background:var(--card);border-radius:var(--rs);box-shadow:0 8px 30px rgba(0,0,0,.15);padding:14px 16px;margin-bottom:8px;animation:slideIn .3s ease;display:flex;gap:10px;align-items:flex-start;font-size:13px;border-left:3px solid var(--p)}
+.toast-item.reminder{border-left-color:var(--w)}
+.toast-item .toast-msg{flex:1;line-height:1.5}
+.toast-item .toast-close{background:none;border:none;cursor:pointer;color:var(--tm);font-size:16px;padding:0 4px}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+/* Notification panel */
+.notify-panel{position:fixed;top:56px;right:0;width:340px;max-width:100vw;max-height:70vh;background:var(--card);box-shadow:0 8px 30px rgba(0,0,0,.15);border-radius:0 0 var(--r) var(--r);z-index:150;overflow-y:auto;display:none}
+.notify-panel.show{display:block}
+.notify-panel .np-item{padding:12px 16px;border-bottom:1px solid var(--bd);font-size:12px;cursor:pointer;line-height:1.5}
+.notify-panel .np-item:hover{background:var(--bg)}
+.notify-panel .np-item.unread{background:var(--pl)}
+.notify-panel .np-time{font-size:10px;color:var(--tm);margin-top:4px}
+/* Empty */
+.empty{padding:40px 20px;text-align:center;color:var(--tm);font-size:13px}
+/* Funnel */
+.funnel{padding:16px}
+.funnel-row{display:flex;align-items:center;margin-bottom:8px}
+.funnel-label{width:70px;font-size:12px;color:var(--ts);text-align:right;padding-right:10px;flex-shrink:0}
+.funnel-bar-wrap{flex:1;height:30px;background:var(--bg);border-radius:4px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 10px;transition:width .6s}
+.funnel-bar span{font-size:12px;color:#fff;font-weight:600}
+/* Score display */
+.score-bar{display:flex;align-items:center;gap:6px}
+.score-dot{width:10px;height:10px;border-radius:50%}
+.score-dot.on{background:var(--s)}
+.score-dot.off{background:var(--bd)}
+/* AI Analysis */
+.analyze-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:14px;background:linear-gradient(135deg,#f0f4ff,#e8f0fe);border-radius:var(--rs)}
+.analyze-header .ah-score{font-size:36px;font-weight:800;color:var(--p)}
+.analyze-header .ah-label{font-size:12px;color:var(--ts)}
+.analyze-meters{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.analyze-meter{background:var(--bg);border-radius:var(--rs);padding:12px;text-align:center}
+.analyze-meter .am-val{font-size:22px;font-weight:700}
+.analyze-meter .am-label{font-size:11px;color:var(--ts);margin-top:2px}
+.analyze-section{margin-bottom:16px}
+.analyze-section h4{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.analyze-gap{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;margin-bottom:6px;background:var(--wl);border-radius:var(--rx);font-size:12px;border-left:3px solid var(--w)}
+.analyze-rec{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;margin-bottom:6px;border-radius:var(--rx);font-size:12px;line-height:1.5}
+.analyze-rec.urgent{background:var(--dl);border-left:3px solid var(--d)}
+.analyze-rec.info{background:var(--pl);border-left:3px solid var(--p)}
+.analyze-rec.strategy{background:var(--sl);border-left:3px solid var(--s)}
+.analyze-rec.warning{background:var(--wl);border-left:3px solid var(--w)}
+.analyze-rec.maintain{background:#f0f4ff;border-left:3px solid #6366f1}
+.analyze-rec.reactivate{background:#fdf4ff;border-left:3px solid #a855f7}
+.analyze-timeline{font-size:12px;color:var(--ts);line-height:1.6;padding:10px 12px;background:var(--bg);border-radius:var(--rx)}
+</style>
+</head>
+<body>
+
+<!-- ====== LOGIN ====== -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <h1>🔧 商厨智能线索管理</h1>
+    <div class="sub">多角色协同 · 实时通知 · 手机可用</div>
+    <input type="text" id="loginUser" placeholder="账号" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="密码" autocomplete="current-password">
+    <button class="btn btn-p" onclick="doLogin()">登 录</button>
+    <div class="tip">
+      演示账号：<br>
+      管理员 admin / admin123<br>
+      运营 yunying / ops123<br>
+      业务 zhangwei / 123456<br>
+      业务 liming / 123456
+    </div>
+  </div>
+</div>
+
+<!-- ====== MAIN APP ====== -->
+<div class="app" id="appMain">
+  <div class="header">
+    <h1 id="headerTitle">线索管理</h1>
+    <div class="header-right">
+      <button class="notify-btn" onclick="toggleNotifications()" title="消息通知">🔔<span class="notify-dot" id="notifyDot"></span></button>
+      <span class="user-chip" id="userChip"></span>
+      <button class="btn btn-o btn-sm" onclick="doLogout()">退出</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabsBar"></div>
+
+  <div class="content" id="appContent"></div>
+</div>
+
+<!-- ====== TOAST CONTAINER ====== -->
+<div class="toast" id="toastContainer"></div>
+
+<!-- ====== NOTIFICATION PANEL ====== -->
+<div class="notify-panel" id="notifyPanel"></div>
+
+<!-- ====== MODALS ====== -->
+<div class="modal" id="leadModal">
+  <div class="modal-inner">
+    <div class="modal-hd"><h3 id="lmTitle">新增线索</h3><button class="modal-close" onclick="closeM('leadModal')">&times;</button></div>
+    <div class="modal-bd">
+      <div class="fg-row">
+        <div class="fg"><label>客户姓名 *</label><input id="lmName" placeholder="如：张总"></div>
+        <div class="fg"><label>电话 *</label><input id="lmPhone" type="tel" placeholder="手机号"></div>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>公司/单位 *</label><input id="lmCompany" placeholder="如：XX大酒店"></div>
+        <div class="fg"><label>线索来源</label><select id="lmSource"><option>抖音</option><option>快手</option><option>视频号</option><option>小红书</option><option>展会</option><option>老客户介绍</option><option>其他</option></select></div>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>意向产品</label><input id="lmProduct" placeholder="如：商用电磁炉、自动炒菜机"></div>
+        <div class="fg"><label>分配给业务员</label><select id="lmAssign"></select></div>
+      </div>
+      <div class="fg"><label>客户意向等级</label>
+        <div class="grade-tags">
+          <div class="grade-tag sel-a" onclick="setGrade('A')">🔥 A级 · 高意向</div>
+          <div class="grade-tag" onclick="setGrade('B')">👍 B级 · 中意向</div>
+          <div class="grade-tag" onclick="setGrade('C')">👀 C级 · 低意向</div>
+        </div>
+      </div>
+      <div class="fg"><label>备注</label><textarea id="lmNote" rows="2" placeholder="记录客户关键信息..."></textarea></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-o" onclick="closeM('leadModal')">取消</button>
+      <button class="btn btn-p" onclick="saveLead()">💾 保存并分配</button>
+    </div>
+  </div>
+</div>
+
+<!-- Follow-up Modal -->
+<div class="modal" id="followModal">
+  <div class="modal-inner">
+    <div class="modal-hd"><h3>📝 跟进记录</h3><button class="modal-close" onclick="closeM('followModal')">&times;</button></div>
+    <div class="modal-bd" id="followBody"></div>
+    <div class="modal-ft">
+      <button class="btn btn-o" onclick="closeM('followModal')">取消</button>
+      <button class="btn btn-p" onclick="saveFollowup()">💾 保存跟进记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal" id="detailModal">
+  <div class="modal-inner" style="max-width:600px">
+    <div class="modal-hd"><h3>📋 线索详情</h3><button class="modal-close" onclick="closeM('detailModal')">&times;</button></div>
+    <div class="modal-bd" id="detailBody"></div>
+    <div class="modal-ft">
+      <button class="btn btn-o" onclick="closeM('detailModal')">关闭</button>
+      <button class="btn btn-p btn-sm" onclick="openFollowup(currentDetailLeadId)">📝 跟进</button>
+      <button class="btn" style="background:#7c3aed;color:#fff" onclick="analyzeLead(currentDetailLeadId)">🤖 AI分析</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal" id="userModal">
+  <div class="modal-inner">
+    <div class="modal-hd"><h3 id="umTitle">添加用户</h3><button class="modal-close" onclick="closeM('userModal')">&times;</button></div>
+    <div class="modal-bd" id="userBody"></div>
+    <div class="modal-ft">
+      <button class="btn btn-o" onclick="closeM('userModal')">取消</button>
+      <button class="btn btn-p" onclick="saveUser()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Analysis Modal -->
+<div class="modal" id="analyzeModal">
+  <div class="modal-inner" style="max-width:640px">
+    <div class="modal-hd"><h3>🤖 AI 智能分析报告</h3><button class="modal-close" onclick="closeM('analyzeModal')">&times;</button></div>
+    <div class="modal-bd" id="analyzeBody">
+      <div style="text-align:center;padding:40px;color:var(--tm)">分析中...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== GLOBAL STATE =====
+let me = null;
+let token = '';
+let WS = null;
+let selectedGrade = 'B';
+let notifyAudio = null;
+let currentDetailLeadId = '';
+
+// ===== API =====
+async function api(method, url, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json', 'Authorization': token } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (res.status === 401) { doLogout(); throw new Error('登录过期'); }
+  return res.json();
+}
+
+// ===== LOGIN =====
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value.trim();
+  if (!username || !password) return alert('请输入账号和密码');
+  try {
+    const data = await fetch('/api/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    }).then(r => r.json());
+    if (data.error) return alert(data.error);
+    me = data.user;
+    token = data.token;
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('appMain').classList.add('active');
+    connectWS();
+    renderApp();
+    loadNotificationSound();
+  } catch (e) { alert('登录失败: ' + e.message); }
+}
+
+function doLogout() {
+  if (WS) WS.close();
+  me = null; token = '';
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('appMain').classList.remove('active');
+}
+
+// ===== WEBSOCKET =====
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  WS = new WebSocket(`${proto}//${location.host}`);
+  WS.onopen = () => { WS.send(JSON.stringify({ type: 'auth', userId: me.id })); };
+  WS.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.type === 'new_lead_assigned' || data.type === 'reminder') {
+        showToast(data.notification || data);
+        if (notifyAudio) { notifyAudio.currentTime = 0; notifyAudio.play().catch(() => {}); }
+        if (currentPage === 'leads') loadLeads();
+      }
+      if (data.unreadCount !== undefined) {
+        updateNotifyBadge(data.unreadCount);
+      }
+    } catch (ex) {}
+  };
+  WS.onclose = () => { setTimeout(connectWS, 5000); };
+}
+
+function loadNotificationSound() {
+  notifyAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af4B/gH+Af3+AgICAgICAgICAf39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f4=');
+}
+
+// ===== TOAST =====
+function showToast(notif) {
+  const container = document.getElementById('toastContainer');
+  const div = document.createElement('div');
+  div.className = 'toast-item ' + (notif.type === 'reminder' ? 'reminder' : '');
+  div.innerHTML = `<span class="toast-msg">${notif.message}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
+  container.appendChild(div);
+  setTimeout(() => { if (div.parentElement) div.remove(); }, 8000);
+}
+
+// ===== NOTIFICATION PANEL =====
+async function toggleNotifications() {
+  const panel = document.getElementById('notifyPanel');
+  if (panel.classList.contains('show')) { panel.classList.remove('show'); return; }
+  const data = await api('GET', '/api/notifications');
+  panel.innerHTML = data.list.length === 0
+    ? '<div class="empty">暂无消息</div>'
+    : `<div style="padding:8px 16px;text-align:right"><button class="btn btn-o btn-sm" onclick="markAllRead()">全部已读</button></div>` +
+      data.list.map(n => `
+        <div class="np-item ${n.is_read ? '' : 'unread'}" onclick="markRead('${n.id}')">
+          ${n.message}
+          <div class="np-time">${new Date(n.created_at).toLocaleString('zh-CN')}</div>
+        </div>
+      `).join('');
+  panel.classList.add('show');
+  updateNotifyBadge(data.unread);
+  document.addEventListener('click', closeNotifyOnClickOutside);
+}
+
+function closeNotifyOnClickOutside(e) {
+  const panel = document.getElementById('notifyPanel');
+  const btn = document.querySelector('.notify-btn');
+  if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    panel.classList.remove('show');
+    document.removeEventListener('click', closeNotifyOnClickOutside);
+  }
+}
+
+async function markRead(id) {
+  await api('PUT', `/api/notifications/${id}/read`);
+  toggleNotifications();
+}
+
+async function markAllRead() {
+  await api('PUT', '/api/notifications/read-all');
+  toggleNotifications();
+}
+
+function updateNotifyBadge(count) {
+  const dot = document.getElementById('notifyDot');
+  if (count > 0) dot.classList.add('show');
+  else dot.classList.remove('show');
+}
+
+// ===== APP RENDER =====
+let currentPage = 'leads';
+
+function renderApp() {
+  document.getElementById('userChip').innerHTML = `👤 ${me.display_name} <span style="font-size:10px;color:var(--tm)">${me.role==='admin'?'管理员':me.role==='ops'?'运营':'业务员'}</span>`;
+
+  let tabs = [];
+  if (me.role === 'admin') {
+    tabs = [
+      { id: 'today', label: '🔔 今日待办' },
+      { id: 'leads', label: '📋 线索管理' },
+      { id: 'pool', label: '🌊 公海池' },
+      { id: 'quality', label: '🛡️ AI质检' },
+      { id: 'wechat', label: '💬 微信助手' },
+      { id: 'reminder-cfg', label: '⚙️ 提醒规则' },
+      { id: 'process', label: '⚡ 过程绩效' },
+      { id: 'result', label: '🎯 结果绩效' },
+      { id: 'stats', label: '📈 客户统计' },
+      { id: 'performance', label: '🏆 业务排行' },
+      { id: 'users', label: '👥 用户管理' },
+    ];
+  } else if (me.role === 'ops') {
+    tabs = [
+      { id: 'monitor', label: '📊 业务监控' },
+      { id: 'leads', label: '📋 线索管理' },
+      { id: 'add', label: '➕ 快速录入' },
+      { id: 'duplicates', label: '🔁 重复筛查' },
+      { id: 'dashboard', label: '📈 数据看板' },
+    ];
+  } else {
+    tabs = [
+      { id: 'today', label: '🔔 今日待办' },
+      { id: 'leads', label: '📋 我的线索' },
+      { id: 'pool', label: '🌊 公海池' },
+      { id: 'wechat', label: '💬 微信助手' },
+      { id: 'dashboard', label: '📊 我的数据' },
+    ];
+  }
+
+  document.getElementById('tabsBar').innerHTML = tabs.map(t =>
+    `<button class="tab ${t.id === currentPage ? 'active' : ''}" onclick="switchPage('${t.id}')">${t.label}</button>`
+  ).join('');
+
+  document.getElementById('headerTitle').textContent = tabs.find(t => t.id === currentPage)?.label.replace(/[^\u4e00-\u9fa5]/g,'') || '线索管理';
+
+  switchPage(currentPage);
+}
+
+function switchPage(pageId) {
+  currentPage = pageId;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const tab = document.querySelector(`.tab[onclick*="${pageId}"]`);
+  if (tab) tab.classList.add('active');
+  document.getElementById('headerTitle').textContent = tab?.textContent.replace(/[^\u4e00-\u9fa5]/g,'') || '';
+
+  const content = document.getElementById('appContent');
+  content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--tm)">加载中...</div>';
+
+  if (pageId === 'leads') loadLeads();
+  else if (pageId === 'monitor') loadOpsMonitor();
+  else if (pageId === 'today') loadTodayReminders();
+  else if (pageId === 'reminder-cfg') loadReminderConfig();
+  else if (pageId === 'pool') loadPool();
+  else if (pageId === 'quality') loadQualityCheck();
+  else if (pageId === 'wechat') loadWechatAssistant();
+  else if (pageId === 'process') loadProcessPerf();
+  else if (pageId === 'result') loadResultPerf();
+  else if (pageId === 'duplicates') loadDuplicates();
+  else if (pageId === 'stats') loadDetailedStats();
+  else if (pageId === 'dashboard') loadDashboard();
+  else if (pageId === 'performance') loadPerformance();
+  else if (pageId === 'users') loadUsers();
+  else if (pageId === 'add') showAddLeadPage();
+}
+
+// ===== LEADS PAGE =====
+async function loadLeads() {
+  const status = document.getElementById('filterStatus')?.value || 'all';
+  const grade = document.getElementById('filterGrade')?.value || 'all';
+  const search = document.getElementById('filterSearch')?.value || '';
+  const overdue = document.getElementById('filterOverdue')?.checked ? '1' : '';
+
+  let url = '/api/leads?';
+  if (status !== 'all') url += `status=${status}&`;
+  if (grade !== 'all') url += `grade=${grade}&`;
+  if (search) url += `search=${encodeURIComponent(search)}&`;
+  if (overdue) url += `overdue=1&`;
+
+  const data = await api('GET', url);
+
+  const content = document.getElementById('appContent');
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-hd">
+        <h3>${me.role==='sales'?'我的':'全部'}线索 (${data.length}条)</h3>
+        <div class="toolbar">
+          <input id="filterSearch" placeholder="🔍 搜索客户/公司" value="${search}" oninput="loadLeads()">
+          <select id="filterStatus" onchange="loadLeads()">
+            <option value="all">全部状态</option>
+            <option value="新线索">新线索</option><option value="已联系">已联系</option>
+            <option value="沟通中">沟通中</option><option value="报价中">报价中</option>
+            <option value="已成交">已成交</option><option value="已丢单">已丢单</option>
+          </select>
+          <select id="filterGrade" onchange="loadLeads()">
+            <option value="all">全部等级</option>
+            <option value="A">A级·高意向</option><option value="B">B级·中意向</option><option value="C">C级·低意向</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="filterOverdue" onchange="loadLeads()" ${overdue?'checked':''}> 超时未跟进
+          </label>
+          ${me.role!=='sales' ? '<button class="btn btn-p btn-sm" onclick="showAddLeadPage()">+ 新增线索</button>' : ''}
+        </div>
+      </div>
+      <div class="card-bd">
+        ${buildLeadTable(data)}
+      </div>
+    </div>
+  `;
+
+  // Restore filter values
+  setTimeout(() => {
+    const fs = document.getElementById('filterStatus'); if (fs) fs.value = status;
+    const fg = document.getElementById('filterGrade'); if (fg) fg.value = grade;
+  }, 50);
+}
+
+function buildLeadTable(leads) {
+  if (leads.length === 0) return '<div class="empty">暂无数据</div>';
+
+  // Desktop table
+  let html = '<div class="table-wrap"><table><thead><tr>';
+  if (me.role !== 'sales') html += '<th>客户</th><th>公司</th><th>产品</th><th>业务员</th>';
+  else html += '<th>客户</th><th>公司</th><th>产品</th>';
+  html += '<th>电话</th><th>等级</th><th>状态</th><th>跟进</th><th>操作</th></tr></thead><tbody>';
+
+  leads.forEach(l => {
+    const overdue = isLeadOverdue(l);
+    const rowClass = overdue === 'danger' ? 'danger-row' : overdue === 'warning' ? 'warn-row' : '';
+    html += `<tr class="${rowClass}">`;
+    if (me.role !== 'sales') {
+      html += `<td><strong>${esc(l.name)}</strong></td><td>${esc(l.company)}</td><td style="font-size:11px">${esc(l.product_interest||'—')}</td><td>${esc(l.assigned_to||'未分配')}</td>`;
+    } else {
+      html += `<td><strong>${esc(l.name)}</strong></td><td>${esc(l.company)}</td><td style="font-size:11px">${esc(l.product_interest||'—')}</td>`;
+    }
+    html += `<td style="font-family:monospace;font-size:12px;color:${l._phone_masked?'var(--tm)':'var(--p)'};font-weight:${l._phone_masked?'400':'600'}">${esc(l.phone)}</td>`;
+    html += `<td><span class="badge badge-${l.grade.toLowerCase()}">${l.grade}级</span></td>`;
+    html += `<td><span class="status status-${l.status}">${l.status}</span></td>`;
+    html += `<td style="font-size:11px;color:${overdue!=='none'?'var(--d)':'var(--ts)'}">${overdue!=='none'?'⚠️ ':''}${formatDt(l.updated_at)}</td>`;
+    html += `<td style="display:flex;gap:4px;flex-wrap:wrap">
+      <button class="btn btn-o btn-sm" onclick="openDetail('${l.id}')">详情</button>
+      <button class="btn btn-p btn-sm" onclick="openFollowup('${l.id}')">📝跟进</button>
+      <button class="btn btn-sm" style="background:#7c3aed;color:#fff" onclick="analyzeLead('${l.id}')">🤖AI分析</button>
+      <button class="btn btn-sm" style="background:#0ea5e9;color:#fff" onclick="generateScript('${l.id}')">📞AI话术</button>
+      ${l.assigned_to ? `<button class="btn btn-sm" style="background:#f97316;color:#fff" onclick="releaseLead('${l.id}')" title="释放到公海池">🌊</button>` : ''}
+      ${me.role==='admin'?`<button class="btn btn-d btn-sm" onclick="delLead('${l.id}')">✕</button>`:''}
+    </td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // Mobile cards
+  leads.forEach(l => {
+    const overdue = isLeadOverdue(l);
+    html += `<div class="lead-card" style="background:${overdue==='danger'?'#fef2f2':overdue==='warning'?'#fffbeb':'#fff'}">
+      <div class="lc-row"><span class="lc-name">${esc(l.name)}</span><span class="badge badge-${l.grade.toLowerCase()}">${l.grade}级</span></div>
+      <div class="lc-row"><span class="lc-info">${esc(l.company)}</span><span class="status status-${l.status}">${l.status}</span></div>
+      <div class="lc-info">📦 ${esc(l.product_interest||'未指定')} ${me.role!=='sales'? '| 👤 '+esc(l.assigned_to||'未分配') :''}</div>
+      <div class="lc-info" style="color:${overdue!=='none'?'var(--d)':'var(--ts)'}">🕐 ${overdue!=='none'?'⚠️ ':''}${formatDt(l.updated_at)}</div>
+      <div class="lc-actions">
+        <button class="btn btn-o btn-sm" onclick="openDetail('${l.id}')">详情</button>
+        <button class="btn btn-p btn-sm" onclick="openFollowup('${l.id}')">📝跟进</button>
+        <button class="btn btn-sm" style="background:#7c3aed;color:#fff" onclick="analyzeLead('${l.id}')">🤖AI分析</button>
+        ${me.role==='admin'?`<button class="btn btn-d btn-sm" onclick="delLead('${l.id}')">删除</button>`:''}
+      </div>
+    </div>`;
+  });
+
+  return html;
+}
+
+function isLeadOverdue(lead) {
+  if (lead.status === '已成交' || lead.status === '已丢单') return 'none';
+  const now = new Date();
+  const updated = new Date(lead.updated_at);
+  const diff = (now - updated) / 3600000;
+
+  if (lead.grade === 'A' && diff > 4) return 'danger';
+  if (lead.grade === 'B' && diff > 24) return 'danger';
+  if (lead.grade === 'C' && diff > 72) return 'warning';
+  if (diff > 24) return 'warning';
+  return 'none';
+}
+
+// ===== ADD LEAD PAGE (for ops) =====
+function showAddLeadPage() {
+  const content = document.getElementById('appContent');
+  selectedGrade = 'B';
+
+  loadSalesReps().then(reps => {
+    content.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>快速录入新线索</h3></div>
+      <div class="card-bd" style="padding:16px">
+        <div class="fg-row">
+          <div class="fg"><label>客户姓名 *</label><input id="qName" placeholder="如：张总"></div>
+          <div class="fg"><label>电话 *</label><input id="qPhone" type="tel" placeholder="手机号"></div>
+        </div>
+        <div class="fg-row">
+          <div class="fg"><label>公司/单位 *</label><input id="qCompany" placeholder="如：XX大酒店"></div>
+          <div class="fg"><label>线索来源</label><select id="qSource"><option>抖音</option><option>快手</option><option>视频号</option><option>小红书</option><option>展会</option><option>老客户介绍</option><option>其他</option></select></div>
+        </div>
+        <div class="fg-row">
+          <div class="fg"><label>意向产品</label><input id="qProduct" placeholder="如：商用电磁炉、自动炒菜机"></div>
+          <div class="fg"><label>分配给业务员 *</label><select id="qAssign">${reps.map(r=>`<option value="${r.display_name}">${r.display_name}</option>`).join('')}</select></div>
+        </div>
+        <div class="fg"><label>客户意向等级</label>
+          <div class="grade-tags">
+            <div class="grade-tag" onclick="selectQuickGrade('A')">🔥 A级·高意向</div>
+            <div class="grade-tag sel-b" onclick="selectQuickGrade('B')">👍 B级·中意向</div>
+            <div class="grade-tag" onclick="selectQuickGrade('C')">👀 C级·低意向</div>
+          </div>
+        </div>
+        <div class="fg"><label>备注</label><textarea id="qNote" rows="2" placeholder="记录客户关键信息..."></textarea></div>
+        <button class="btn btn-p btn-blk" style="margin-top:8px;padding:12px" onclick="quickAddLead()">⚡ 立即录入并通知业务员</button>
+      </div>
+    </div>`;
+  });
+}
+
+function selectQuickGrade(g) {
+  selectedGrade = g;
+  document.querySelectorAll('#appContent .grade-tag').forEach(t => {
+    t.className = 'grade-tag';
+    if (t.textContent.includes('A级')) t.classList.add(g==='A'?'sel-a':'');
+    else if (t.textContent.includes('B级')) t.classList.add(g==='B'?'sel-b':'');
+    else t.classList.add(g==='C'?'sel-c':'');
+  });
+}
+
+async function quickAddLead() {
+  const name = document.getElementById('qName').value.trim();
+  const phone = document.getElementById('qPhone').value.trim();
+  const company = document.getElementById('qCompany').value.trim();
+  const assigned = document.getElementById('qAssign').value;
+  if (!name || !phone || !company) return alert('请填写客户姓名、电话和公司');
+  if (!assigned) return alert('请选择业务员');
+
+  const body = {
+    name, phone, company,
+    source: document.getElementById('qSource').value,
+    product_interest: document.getElementById('qProduct').value.trim(),
+    grade: selectedGrade,
+    assigned_to: assigned,
+    notes: document.getElementById('qNote').value.trim()
+  };
+
+  const result = await api('POST', '/api/leads', body);
+  if (result.error) return alert(result.error);
+
+  // Play sound for feedback
+  if (notifyAudio) { notifyAudio.currentTime = 0; notifyAudio.play().catch(()=>{}); }
+
+  alert('✅ 线索已录入并分配给 ' + assigned + '，业务员已收到实时通知！');
+  showAddLeadPage(); // Reset form
+}
+
+function setGrade(g) {
+  selectedGrade = g;
+  document.querySelectorAll('.grade-tag').forEach(t => {
+    t.className = 'grade-tag';
+    if (t.textContent.includes('A级')) t.classList.add(g==='A'?'sel-a':'');
+    else if (t.textContent.includes('B级')) t.classList.add(g==='B'?'sel-b':'');
+    else t.classList.add(g==='C'?'sel-c':'');
+  });
+}
+
+async function saveLead() {
+  const name = document.getElementById('lmName').value.trim();
+  const phone = document.getElementById('lmPhone').value.trim();
+  const company = document.getElementById('lmCompany').value.trim();
+  const assigned = document.getElementById('lmAssign').value;
+  if (!name || !phone || !company) return alert('请填写必填项');
+  if (!assigned) return alert('请选择业务员');
+
+  const body = {
+    name, phone, company,
+    source: document.getElementById('lmSource').value,
+    product_interest: document.getElementById('lmProduct').value.trim(),
+    grade: selectedGrade,
+    assigned_to: assigned,
+    notes: document.getElementById('lmNote').value.trim()
+  };
+
+  const result = await api('POST', '/api/leads', body);
+  if (result.error) return alert(result.error);
+  if (notifyAudio) { notifyAudio.currentTime = 0; notifyAudio.play().catch(()=>{}); }
+  closeM('leadModal');
+  loadLeads();
+}
+
+async function delLead(id) {
+  if (!confirm('确定删除？')) return;
+  await api('DELETE', '/api/leads/' + id);
+  loadLeads();
+}
+
+// ===== FOLLOW-UP =====
+async function openFollowup(leadId) {
+  const data = await api('GET', '/api/leads/' + leadId);
+  const lead = data.lead;
+  const history = data.followUps || [];
+
+  document.getElementById('followBody').innerHTML = `
+    <div style="margin-bottom:16px;font-size:13px">
+      <strong>${esc(lead.name)}</strong> · ${esc(lead.company)} · <span class="badge badge-${lead.grade.toLowerCase()}">${lead.grade}级</span> · <span class="status status-${lead.status}">${lead.status}</span>
+    </div>
+
+    ${history.length > 0 ? `
+    <div style="margin-bottom:16px">
+      <strong style="font-size:12px">历史跟进 (${history.length}条)</strong>
+      ${history.slice(0,5).map(f => `
+        <div style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px">
+          <div style="color:var(--tm);margin-bottom:4px">${new Date(f.created_at).toLocaleString('zh-CN')} · ${esc(f.user_name)} · 跟进质量 ${'⭐'.repeat(f.effective_score)}${f.effective_score===0?'☆'.repeat(5):'☆'.repeat(5-f.effective_score)}</div>
+          <div>${esc(f.content)}</div>
+          ${f.next_action ? `<div style="margin-top:4px"><strong>下一步：</strong>${esc(f.next_action)}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    ` : ''}
+
+    <div class="fg"><label>跟进内容 *</label><textarea id="fwContent" rows="3" placeholder="记录本次沟通内容..."></textarea></div>
+
+    <div class="fg"><label>跟进质量检查（勾选越多，跟进质量越高）</label>
+      <div class="check-pills">
+        <label class="check-pill" onclick="this.classList.toggle('checked')"><input type="checkbox">👤 触达到决策人</label>
+        <label class="check-pill" onclick="this.classList.toggle('checked')"><input type="checkbox">💰 了解了预算</label>
+        <label class="check-pill" onclick="this.classList.toggle('checked')"><input type="checkbox">📅 了解了采购时间</label>
+        <label class="check-pill" onclick="this.classList.toggle('checked')"><input type="checkbox">🎯 挖掘了痛点需求</label>
+        <label class="check-pill" onclick="this.classList.toggle('checked')"><input type="checkbox">🏢 了解了竞品情况</label>
+      </div>
+    </div>
+
+    <div class="fg-row">
+      <div class="fg"><label>下一步计划</label><input id="fwNext" placeholder="如：周三发报价方案"></div>
+      <div class="fg"><label>更新状态为</label><select id="fwStatus">
+        <option value="${lead.status}" selected>保持 ${lead.status}</option>
+        <option value="已联系">已联系</option><option value="沟通中">沟通中</option>
+        <option value="报价中">报价中</option><option value="已成交">已成交</option><option value="已丢单">已丢单</option>
+      </select></div>
+    </div>
+  `;
+
+  document.getElementById('followModal').dataset.leadId = leadId;
+  document.getElementById('followModal').classList.add('show');
+}
+
+async function saveFollowup() {
+  const leadId = document.getElementById('followModal').dataset.leadId;
+  const content = document.getElementById('fwContent').value.trim();
+  if (!content) return alert('请填写跟进内容');
+
+  const pills = document.querySelectorAll('#followBody .check-pill');
+  const body = {
+    content,
+    reached_dm: pills[0].classList.contains('checked'),
+    got_budget: pills[1].classList.contains('checked'),
+    got_timeline: pills[2].classList.contains('checked'),
+    found_pain: pills[3].classList.contains('checked'),
+    found_competition: pills[4].classList.contains('checked'),
+    next_action: document.getElementById('fwNext').value.trim(),
+    new_status: document.getElementById('fwStatus').value
+  };
+
+  const result = await api('POST', `/api/leads/${leadId}/followup`, body);
+  if (result.error) return alert(result.error);
+
+  alert(`✅ 跟进已记录！跟进质量评分：${'⭐'.repeat(result.effective_score)} (${result.effective_score}/5)`);
+  closeM('followModal');
+  loadLeads();
+}
+
+// ===== DETAIL =====
+async function openDetail(leadId) {
+  currentDetailLeadId = leadId;
+  const data = await api('GET', '/api/leads/' + leadId);
+  const l = data.lead;
+  const fups = data.followUps || [];
+  const overdue = isLeadOverdue(l);
+
+  let alertHtml = '';
+  if (overdue === 'danger') alertHtml = '<div style="background:#fef2f2;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#dc2626;font-weight:600">⚠️ 该线索已超时未跟进，请立即联系客户！</div>';
+  else if (overdue === 'warning') alertHtml = '<div style="background:#fffbeb;padding:10px 14px;border-radius:6px;margin-bottom:12px;color:#d97706">🟡 该线索跟进间隔较长，建议尽快联系</div>';
+
+  document.getElementById('detailBody').innerHTML = `
+    ${alertHtml}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:16px">
+      <div><strong>客户：</strong>${esc(l.name)}</div><div><strong>电话：</strong>${esc(l.phone)}</div>
+      <div><strong>公司：</strong>${esc(l.company)}</div><div><strong>来源：</strong>${esc(l.source)}</div>
+      <div><strong>产品：</strong>${esc(l.product_interest||'—')}</div><div><strong>业务员：</strong>${esc(l.assigned_to||'未分配')}</div>
+      <div><strong>等级：</strong><span class="badge badge-${l.grade.toLowerCase()}">${l.grade}级</span></div>
+      <div><strong>状态：</strong><span class="status status-${l.status}">${l.status}</span></div>
+      <div><strong>创建：</strong>${new Date(l.created_at).toLocaleString('zh-CN')}</div>
+      <div><strong>更新：</strong>${new Date(l.updated_at).toLocaleString('zh-CN')}</div>
+    </div>
+    ${l.notes ? `<div style="font-size:12px;color:var(--ts);margin-bottom:12px;background:var(--bg);padding:8px 12px;border-radius:6px">📝 ${esc(l.notes)}</div>` : ''}
+    <div style="margin-bottom:8px"><strong style="font-size:13px">���进记录 (${fups.length}条)</strong></div>
+    ${fups.length === 0 ? '<div class="empty" style="padding:20px">暂无跟进记录</div>' : fups.map(f => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--bd);font-size:12px">
+        <div style="display:flex;justify-content:space-between;color:var(--tm);margin-bottom:4px">
+          <span>${new Date(f.created_at).toLocaleString('zh-CN')} · ${esc(f.user_name)}</span>
+          <span>${'⭐'.repeat(f.effective_score)}${'☆'.repeat(5-f.effective_score)}</span>
+        </div>
+        <div>${esc(f.content)}</div>
+        <div style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+          ${f.reached_dm?'<span style="background:var(--sl);padding:2px 6px;border-radius:4px;font-size:10px">👤决策人</span>':''}
+          ${f.got_budget?'<span style="background:var(--sl);padding:2px 6px;border-radius:4px;font-size:10px">💰预算</span>':''}
+          ${f.got_timeline?'<span style="background:var(--sl);padding:2px 6px;border-radius:4px;font-size:10px">📅时间</span>':''}
+          ${f.found_pain?'<span style="background:var(--sl);padding:2px 6px;border-radius:4px;font-size:10px">🎯痛点</span>':''}
+          ${f.found_competition?'<span style="background:var(--sl);padding:2px 6px;border-radius:4px;font-size:10px">🏢竞品</span>':''}
+          ${f.next_action?`<span style="background:#ede9fe;padding:2px 6px;border-radius:4px;font-size:10px">▶ ${esc(f.next_action)}</span>`:''}
+        </div>
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  const stats = await api('GET', '/api/stats');
+  const leads = await api('GET', '/api/leads');
+  const statusMap = {};
+  if (stats.byStatus) stats.byStatus.forEach(s => statusMap[s.status] = s.cnt);
+  const stages = ['新线索', '已联系', '沟通中', '报价中', '已成交'];
+  const counts = stages.map(s => statusMap[s] || 0);
+  const total = stats.total || 1;
+  const maxCount = Math.max(...counts, 1);
+  const colors = ['#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#10b981'];
+
+  const content = document.getElementById('appContent');
+  content.innerHTML = `
+    <div class="stats">
+      <div class="stat blue"><div class="stat-num">${stats.total}</div><div class="stat-label">线索总量</div></div>
+      <div class="stat"><div class="stat-num">${stats.todayLeads}</div><div class="stat-label">今日新增</div></div>
+      <div class="stat green"><div class="stat-num">${statusMap['已成交']||0}</div><div class="stat-label">已成交</div></div>
+      <div class="stat red"><div class="stat-num">${stats.overdue}</div><div class="stat-label">超时未跟进</div></div>
+      <div class="stat"><div class="stat-num">${total>0?Math.round((statusMap['已成交']||0)/total*100):0}%</div><div class="stat-label">成交转化率</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>📊 转化漏斗</h3></div>
+      <div class="funnel">
+        ${stages.map((s,i) => `
+        <div class="funnel-row">
+          <div class="funnel-label">${s}</div>
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar" style="width:${Math.max(counts[i]/maxCount*100,5)}%;background:${colors[i]}">
+              <span>${counts[i]}条 (${Math.round(counts[i]/total*100)}%)</span>
+            </div>
+          </div>
+          ${i<stages.length-1?'<div style="width:20px;text-align:center;font-size:14px;color:var(--tm)">→</div>':''}
+        </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="card-hd"><h3>📋 意向等级分布</h3></div>
+      <div style="padding:16px;display:flex;gap:16px">
+        ${['A','B','C'].map(g => {
+          const cnt = (stats.byGrade||[]).find(x=>x.grade===g)?.cnt || 0;
+          const clr = g==='A'?'#ef4444':g==='B'?'#f59e0b':'#3b82f6';
+          return `
+          <div style="flex:1;text-align:center">
+            <div style="font-size:28px;font-weight:700;color:${clr}">${cnt}</div>
+            <div style="font-size:12px;color:var(--ts)">${g}级·${g==='A'?'高意向':g==='B'?'中意向':'低意向'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ===== PERFORMANCE (admin only) =====
+async function loadPerformance() {
+  if (me.role !== 'admin') return;
+  const data = await api('GET', '/api/performance');
+
+  const content = document.getElementById('appContent');
+  const maxWon = Math.max(...data.map(r => r.won), 1);
+
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>🏆 业务员转化排行</h3></div>
+      <div style="padding:16px">
+        ${data.map((r, i) => `
+        <div style="display:flex;align-items:center;margin-bottom:12px;gap:10px">
+          <div style="width:24px;text-align:center;font-weight:700;color:${i===0?'#f59e0b':i===1?'#94a3b8':i===2?'#cd853f':'var(--ts)'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+          <div style="width:60px;font-weight:600;font-size:13px">${esc(r.name)}</div>
+          <div style="flex:1;height:28px;background:#f1f5f9;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${Math.max(r.won/maxWon*100,3)}%;background:linear-gradient(90deg,#1a56db,#3b82f6);display:flex;align-items:center;padding:0 10px">
+              <span style="font-size:12px;color:#fff;font-weight:600">${r.won>0?r.won+'单':''}</span>
+            </div>
+          </div>
+          <div style="width:60px;text-align:right;font-size:12px;color:var(--ts)">${r.convRate}%转化</div>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>📋 详细数据</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>业务员</th><th>线索数</th><th>跟进率</th><th>成交数</th><th>转化率</th><th>平均跟进质量</th></tr></thead>
+          <tbody>
+            ${data.map(r => `
+            <tr>
+              <td><strong>${esc(r.name)}</strong></td>
+              <td>${r.total}</td>
+              <td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${r.followRate}%;background:${r.followRate>=80?'#10b981':r.followRate>=50?'#f59e0b':'#ef4444'};border-radius:3px"></div></div><span style="font-size:11px">${r.followRate}%</span></div></td>
+              <td style="font-weight:600;color:var(--s)">${r.won}</td>
+              <td style="font-weight:600">${r.convRate}%</td>
+              <td>${'⭐'.repeat(Math.round(r.avgScore))} <span style="font-size:11px;color:var(--ts)">${r.avgScore}/5</span></td>
+            </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ===== USERS (admin) =====
+async function loadUsers() {
+  if (me.role !== 'admin') return;
+  const users = await api('GET', '/api/users');
+  const salesUsers = users.filter(u => u.role === 'sales');
+
+  document.getElementById('appContent').innerHTML = `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd"><h3>🔄 客户继承/转移</h3></div>
+        <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end">
+          <div>
+            <label style="font-size:12px;font-weight:600">原业务员（离职/换号）</label>
+            <select id="transferFrom" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;margin-top:4px">
+              ${salesUsers.map(u=>`<option value="${esc(u.display_name)}">${esc(u.display_name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600">转移给</label>
+            <select id="transferTo" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;margin-top:4px">
+              ${salesUsers.map(u=>`<option value="${esc(u.display_name)}">${esc(u.display_name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600">选择</label>
+            <select id="transferMode" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;margin-top:4px">
+              <option value="all">转移全部客户</option>
+              <option value="active">仅未成交客户</option>
+            </select>
+          </div>
+          <button class="btn btn-p" onclick="doTransfer()">执行转移</button>
+        </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>用户管理</h3><button class="btn btn-p btn-sm" onclick="openUserModal()">+ 添加用户</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>账号</th><th>姓名</th><th>角色</th><th>手机</th><th>每日领取上限</th><th>账号状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody>
+            ${users.map(u => `
+            <tr ${u.is_locked?'style="background:#fef2f2"':''}>
+              <td>${esc(u.username)}</td>
+              <td><strong>${esc(u.display_name)}</strong></td>
+              <td><span class="badge" style="background:${u.role==='admin'?'#fee2e2':u.role==='ops'?'#dbeafe':'#d1fae5'};color:${u.role==='admin'?'#991b1b':u.role==='ops'?'#1e40af':'#065f46'}">${u.role==='admin'?'管理员':u.role==='ops'?'运营':'业务员'}</span></td>
+              <td>${esc(u.phone||'—')}</td>
+              <td>${u.role==='sales'?(u.daily_claim_limit||10)+'条':'—'}</td>
+              <td>${u.is_locked?'<span style="color:var(--d);font-weight:600">🔒 已锁定</span>':'<span style="color:var(--s)">正常</span>'}</td>
+              <td style="font-size:11px;color:var(--ts)">${u.created_at?.slice(0,10)||''}</td>
+              <td>
+                <button class="btn btn-o btn-sm" onclick="openUserModal('${u.id}')">编辑</button>
+                ${u.id!==me.id?`<button class="btn btn-${u.is_locked?'s':'d'} btn-sm" onclick="toggleLock('${u.id}', ${u.is_locked?1:0})">${u.is_locked?'解锁':'锁定'}</button>`:''}
+                ${u.id!==me.id?`<button class="btn btn-d btn-sm" onclick="delUser('${u.id}')">删除</button>`:''}
+              </td>
+            </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+async function doTransfer() {
+  const fromUser = document.getElementById('transferFrom').value;
+  const toUser = document.getElementById('transferTo').value;
+  const mode = document.getElementById('transferMode').value;
+  if (fromUser === toUser) return alert('转出来源和目标不能相同');
+
+  let leadIds = null;
+  if (mode === 'active') {
+    // Get active leads from fromUser
+    const all = await api('GET', '/api/leads?assigned=' + encodeURIComponent(fromUser));
+    leadIds = all.filter(l => l.status !== '已成交' && l.status !== '已丢单').map(l => l.id);
+    if (leadIds.length === 0) return alert(`${fromUser}名下没有未成交客户可转移`);
+  }
+
+  const count = leadIds ? `${leadIds.length}条（仅未成交）` : '全部';
+  if (!confirm(`确认将 ${fromUser} 名下的 ${count} 客户转移到 ${toUser}？\n\n此操作不可撤销！`)) return;
+
+  const result = await api('POST', '/api/leads/transfer', { fromUser, toUser, leadIds });
+  if (result.error) return alert('❌ ' + result.error);
+  alert('✅ ' + result.message);
+  loadUsers();
+}
+
+async function toggleLock(userId, currentlyLocked) {
+  const action = currentlyLocked ? '解锁' : '锁定';
+  if (!confirm(`确认${action}此账号？${!currentlyLocked ? '锁定后该业务员将无法领取公海线索' : ''}`)) return;
+  const result = await api('POST', `/api/users/${userId}/lock`, { locked: !currentlyLocked });
+  if (result.error) return alert('❌ ' + result.error);
+  alert('✅ ' + result.message);
+  loadUsers();
+}
+
+async function openUserModal(editId) {
+  let title = '添加用户';
+  let bodyHTML = '';
+  if (editId) {
+    const users = await api('GET', '/api/users');
+    const u = users.find(x => x.id === editId);
+    if (u) {
+      title = '编辑用户 - ' + u.display_name;
+      bodyHTML = `
+        <input type="hidden" id="umEditId" value="${u.id}">
+        <div class="fg-row">
+          <div class="fg"><label>账号</label><input id="umUsername" value="${esc(u.username)}"></div>
+          <div class="fg"><label>新密码（不改则留空）</label><input id="umPassword" type="password" placeholder="留空不修改"></div>
+        </div>
+        <div class="fg-row">
+          <div class="fg"><label>显示名称</label><input id="umDisplayName" value="${esc(u.display_name)}"></div>
+          <div class="fg"><label>角色</label><select id="umRole"><option value="admin" ${u.role==='admin'?'selected':''}>管理员</option><option value="ops" ${u.role==='ops'?'selected':''}>运营</option><option value="sales" ${u.role==='sales'?'selected':''}>业务员</option></select></div>
+        </div>
+        <div class="fg"><label>手机</label><input id="umPhone" value="${esc(u.phone||'')}"></div>
+      `;
+    }
+  } else {
+    bodyHTML = `
+      <input type="hidden" id="umEditId" value="">
+      <div class="fg-row">
+        <div class="fg"><label>账号 *</label><input id="umUsername" placeholder="登录账号"></div>
+        <div class="fg"><label>密码 *</label><input id="umPassword" type="password" placeholder="设置密码"></div>
+      </div>
+      <div class="fg-row">
+        <div class="fg"><label>显示名称 *</label><input id="umDisplayName" placeholder="如：张三"></div>
+        <div class="fg"><label>角色</label><select id="umRole"><option value="sales">业务员</option><option value="ops">运营</option></select></div>
+      </div>
+      <div class="fg"><label>手机</label><input id="umPhone" placeholder="手机号"></div>
+    `;
+  }
+
+  document.getElementById('umTitle').textContent = title;
+  document.getElementById('userBody').innerHTML = bodyHTML;
+  document.getElementById('userModal').classList.add('show');
+}
+
+async function saveUser() {
+  const editId = document.getElementById('umEditId').value;
+  const username = document.getElementById('umUsername').value.trim();
+  const displayName = document.getElementById('umDisplayName').value.trim();
+  const role = document.getElementById('umRole').value;
+  const phone = document.getElementById('umPhone').value.trim();
+  const password = document.getElementById('umPassword').value.trim();
+
+  if (!username || !displayName) return alert('请填写必填项');
+
+  let result;
+  if (editId) {
+    const body = { username, display_name: displayName, role, phone };
+    if (password) body.password = password;
+    result = await api('PUT', '/api/users/' + editId, body);
+  } else {
+    if (!password) return alert('请设置密码');
+    result = await api('POST', '/api/users', { username, password, display_name: displayName, role, phone });
+  }
+
+  if (result.error) return alert(result.error);
+  closeM('userModal');
+  loadUsers();
+}
+
+async function delUser(id) {
+  if (!confirm('确定删除？')) return;
+  await api('DELETE', '/api/users/' + id);
+  loadUsers();
+}
+
+// ===== PUBLIC POOL =====
+async function loadPool() {
+  const data = await api('GET', '/api/pool');
+  const content = document.getElementById('appContent');
+
+  const myClaimsToday = me.role === 'sales' ? await api('GET', '/api/leads').then(leads => {
+    const today = new Date().toISOString().slice(0,10);
+    return leads.filter(l => l.assigned_to === me.display_name && l.created_at?.startsWith(today)).length;
+  }) : 0;
+
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-hd">
+        <h3>🌊 公海池 (${data.length}条)</h3>
+        <div style="font-size:12px;color:var(--ts)">
+          ${me.role === 'sales' ? `今日已领取 ${myClaimsToday} 条 | 每日上限 ${me.daily_claim_limit || 10} 条` : '管理员视图'}
+        </div>
+      </div>
+      <div class="card-bd">
+        ${data.length === 0 ? '<div class="empty">公海池目前是空的</div>' : `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>客户</th><th>公司</th><th>电话</th><th>产品</th><th>等级</th><th>状态</th><th>来源</th><th>回流时间</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+              ${data.map(l => `<tr>
+                <td><strong>${esc(l.name)}</strong></td>
+                <td>${esc(l.company)}</td>
+                <td style="font-family:monospace;color:${l._phone_masked?'var(--tm)':'var(--p)'};font-weight:${l._phone_masked?'400':'600'}">${l.phone}</td>
+                <td style="font-size:11px">${esc(l.product_interest||'—')}</td>
+                <td><span class="badge badge-${l.grade.toLowerCase()}">${l.grade}级</span></td>
+                <td><span class="status status-${l.status}">${l.status}</span></td>
+                <td style="font-size:11px">${esc(l.source)}</td>
+                <td style="font-size:11px;color:var(--tm)">${formatDt(l.pool_returned_at)}</td>
+                <td>
+                  ${me.role==='sales'? `<button class="btn btn-s btn-sm" onclick="claimLead('${l.id}')">📥 领取</button>` : `<button class="btn btn-o btn-sm" onclick="openDetail('${l.id}')">详情</button>`}
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        `}
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--ts);background:var(--bg);padding:12px;border-radius:6px">
+      💡 <strong>公海池规则</strong>：业务员超时未跟进（A级12h/B级72h/C级7天）的客户会自动进入公海池。业务员可以主动领取，每日有上限防止资源霸占。
+    </div>
+  `;
+}
+
+async function claimLead(leadId) {
+  if (!confirm('确认领取此客户？领取后请尽快联系！')) return;
+  const result = await api('POST', `/api/leads/${leadId}/claim`);
+  if (result.error) return alert('❌ ' + result.error);
+  alert('✅ ' + result.message);
+  loadPool();
+  if (currentPage === 'leads') loadLeads();
+}
+
+async function releaseLead(leadId) {
+  if (!confirm('确认将此客户释放到公海池？其他业务员将可以领取。')) return;
+  const result = await api('POST', `/api/leads/${leadId}/release`);
+  if (result.error) return alert('❌ ' + result.error);
+  alert('✅ ' + result.message);
+  loadLeads();
+}
+
+// ===== DUPLICATES =====
+async function loadDuplicates() {
+  const data = await api('GET', '/api/duplicates');
+  const content = document.getElementById('appContent');
+
+  const renderGroup = (g, label) => `
+    <div style="background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:12px">
+      <div style="font-weight:600;margin-bottom:8px">${label}：<span style="color:var(--p)">${esc(g.value)}</span> <span class="badge badge-c" style="margin-left:6px">${g.count}条重复</span></div>
+      <table style="width:100%">
+        <thead><tr><th>客户</th><th>公司</th><th>电话</th><th>业务员</th><th>状态</th><th>录入时间</th></tr></thead>
+        <tbody>
+          ${g.leads.map(l => `<tr>
+            <td>${esc(l.name)}</td>
+            <td>${esc(l.company)}</td>
+            <td style="font-family:monospace">${esc(l.phone)}</td>
+            <td>${esc(l.assigned_to||'未分配')}</td>
+            <td><span class="status status-${l.status}">${l.status}</span></td>
+            <td style="font-size:11px;color:var(--tm)">${formatDt(l.created_at)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>🔁 重复客户筛查</h3><div style="font-size:12px;color:var(--ts)">电话重复 ${data.byPhone.length} 组 · 公司重复 ${data.byCompany.length} 组 · 涉及线索 ${data.totalDuplicateLeads} 条</div></div>
+      <div class="card-bd" style="padding:16px">
+        ${data.byPhone.length === 0 && data.byCompany.length === 0 ? '<div class="empty">🎉 没有发现重复客户</div>' : `
+          ${data.byPhone.length > 0 ? '<h4 style="margin-bottom:8px">📞 按电话重复</h4>' + data.byPhone.map(g => renderGroup(g, '电话号码')).join('') : ''}
+          ${data.byCompany.length > 0 ? '<h4 style="margin:12px 0 8px">🏢 按公司名重复</h4>' + data.byCompany.map(g => renderGroup(g, '公司名称')).join('') : ''}
+        `}
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button class="btn btn-o btn-sm" onclick="exportDuplicates()">📥 导出重复列表 (CSV)</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function exportDuplicates() {
+  const data = await api('GET', '/api/duplicates');
+  let csv = '类型,重复值,客户姓名,公司,电话,业务员,状态,录入时间\n';
+  data.byPhone.concat(data.byCompany).forEach(g => {
+    g.leads.forEach(l => {
+      csv += `${g.type},${g.value},${l.name},${l.company},${l.phone},${l.assigned_to},${l.status},${l.created_at}\n`;
+    });
+  });
+  // Download CSV
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `重复客户_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== DETAILED STATS =====
+async function loadDetailedStats() {
+  const data = await api('GET', '/api/stats/detailed');
+  const content = document.getElementById('appContent');
+  const g = data.globalStats;
+  const gradeColors = { A: '#ef4444', B: '#f59e0b', C: '#3b82f6' };
+
+  content.innerHTML = `
+    <div class="stats">
+      <div class="stat blue"><div class="stat-num">${g.totalLeads}</div><div class="stat-label">客户总量</div></div>
+      <div class="stat green"><div class="stat-num">${g.byStatus['已成交']||0}</div><div class="stat-label">已成交</div></div>
+      <div class="stat"><div class="stat-num">${g.totalFollowUps}</div><div class="stat-label">跟进总次数</div></div>
+      <div class="stat"><div class="stat-num">${g.avgFollowUps}</div><div class="stat-label">平均跟进次数</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>📊 客户标签分布</h3></div>
+      <div style="padding:16px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+          ${['A','B','C'].map(grade => `
+            <div style="text-align:center;padding:16px;background:${gradeColors[grade]}10;border-radius:8px">
+              <div style="font-size:32px;font-weight:700;color:${gradeColors[grade]}">${g.byGrade[grade]}</div>
+              <div style="font-size:12px;color:var(--ts)">${grade}级 · ${grade==='A'?'高意向':grade==='B'?'中意向':'低意向'}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <h4 style="margin-top:16px;margin-bottom:8px">状态分布</h4>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+          ${Object.entries(g.byStatus).map(([s,c]) => `<span class="status status-${s}">${s}: ${c}条</span>`).join('')}
+        </div>
+
+        <h4 style="margin-bottom:8px">来源分布</h4>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${Object.entries(g.bySource).map(([s,c]) => `<span style="background:#f1f5f9;padding:4px 10px;border-radius:6px;font-size:12px">${s}: ${c}条</span>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>👥 员工客户详细统计</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>员工</th><th>总客户</th><th>有效电话</th><th>A/B/C</th><th>已成交</th><th>转化率</th><th>超时</th><th>账号状态</th>
+          </tr></thead>
+          <tbody>
+            ${data.perEmployee.map(p => `<tr ${p.isLocked?'style="background:#fef2f2"':''}>
+              <td><strong>${esc(p.name)}</strong></td>
+              <td><strong>${p.total}</strong></td>
+              <td>${p.totalPhones}</td>
+              <td style="font-size:11px">
+                <span style="color:#ef4444">A:${p.byGrade.A}</span> ·
+                <span style="color:#f59e0b">B:${p.byGrade.B}</span> ·
+                <span style="color:#3b82f6">C:${p.byGrade.C}</span>
+              </td>
+              <td style="color:var(--s);font-weight:600">${p.won}</td>
+              <td>${p.convRate}%</td>
+              <td style="color:${p.overdue>0?'var(--d)':'var(--ts)'}">${p.overdue>0?'⚠️ '+p.overdue:'0'}</td>
+              <td>${p.isLocked?'<span style="color:var(--d)">🔒 已锁定</span>':'<span style="color:var(--s)">正常</span>'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ===== AI SCRIPT GENERATOR =====
+async function generateScript(leadId) {
+  const scenarios = ['首次触达', '需求挖掘', '异议处理', '逼单成交'];
+  const sc = prompt('选择话术场景：\n1. 首次触达\n2. 需求挖掘\n3. 异议处理\n4. 逼单成交\n\n请输入场景名：', '首次触达');
+  if (!sc) return;
+
+  const result = await api('POST', '/api/ai/generate-script', { leadId, scenario: sc });
+  if (result.error) return alert('❌ ' + result.error);
+
+  document.getElementById('analyzeBody').innerHTML = `
+    <div style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:16px">
+      <div style="font-weight:700;margin-bottom:6px">🎯 ${result.scenario} · 行业：${result.industry}</div>
+      <div style="font-size:12px;color:var(--ts)">AI 基于行业最佳实践 + 历史高转化跟进自动生成</div>
+    </div>
+
+    <div style="background:#fff;padding:16px;border:2px dashed #7c3aed;border-radius:8px;margin-bottom:16px;white-space:pre-line;line-height:1.8;font-size:13px">
+      ${esc(result.script)}
+    </div>
+
+    ${result.bestPractices.length > 0 ? `
+    <h4 style="margin-bottom:8px">📚 参考的优秀跟进案例</h4>
+    ${result.bestPractices.map(p => `
+      <div style="font-size:12px;padding:8px 12px;background:var(--bg);border-radius:6px;margin-bottom:6px">
+        <strong>${esc(p.user)}</strong> ${'⭐'.repeat(p.score)} <span style="color:var(--tm)">${p.excerpt}</span>
+      </div>
+    `).join('')}
+    ` : ''}
+
+    <div style="background:#eff6ff;padding:12px;border-radius:8px;margin-top:16px">
+      ${result.tips.map(t => `<div style="font-size:12px;padding:2px 0">${t}</div>`).join('')}
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-o btn-sm" onclick="generateScript('${leadId}')">🔄 重新生成</button>
+      <button class="btn btn-p btn-sm" onclick="navigator.clipboard.writeText(\`${result.script.replace(/`/g,'\\`').replace(/\$/g,'\\$').replace(/\n/g,'\\n')}\`);alert('已复制到剪贴板')">📋 复制话术</button>
+    </div>
+  `;
+  document.getElementById('analyzeModal').classList.add('show');
+}
+
+// ===== AI ANALYSIS =====
+async function analyzeLead(leadId) {
+  document.getElementById('analyzeBody').innerHTML = '<div style="text-align:center;padding:40px;color:var(--tm)"><div style="font-size:32px;margin-bottom:12px">🤖</div>AI正在分析客户数据...</div>';
+  document.getElementById('analyzeModal').classList.add('show');
+
+  try {
+    const data = await api('GET', '/api/analyze/' + leadId);
+    const a = data;
+
+    const signalColors = { '决策人': '#8b5cf6', '预算': '#f59e0b', '时间': '#06b6d4', '痛点': '#ef4444', '竞品': '#10b981' };
+
+    document.getElementById('analyzeBody').innerHTML = `
+      <div style="font-size:14px;font-weight:700;margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px">
+        👤 ${esc(a.lead.name)} · ${esc(a.lead.company)} &nbsp;
+        <span class="badge badge-${a.lead.grade.toLowerCase()}">${a.lead.grade}级</span>
+        <span class="status status-${a.lead.status}">${a.lead.status}</span>
+        <div style="font-size:12px;color:var(--ts);margin-top:4px">
+          📦 ${esc(a.lead.product||'未指定')} | 📍 ${esc(a.lead.source)} | 🕐 创建${a.overview.daysSinceCreation}天 · 跟进${a.overview.totalFollowUps}次 · 平均质量 ${a.overview.avgScore}/5
+        </div>
+      </div>
+
+      <!-- Urgency -->
+      <div style="padding:12px 14px;background:${a.urgency.color}10;border-left:4px solid ${a.urgency.color};margin-bottom:16px;border-radius:4px">
+        <div style="font-weight:700;color:${a.urgency.color};font-size:14px">⚠️ 紧迫度：${a.urgency.level}</div>
+        <div style="font-size:13px;margin-top:4px;line-height:1.7">${a.urgency.text}</div>
+      </div>
+
+      <!-- Signal Scan -->
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">🔍 信息完整度扫描 <span style="color:${a.signalScan.completeness>=80?'#10b981':a.signalScan.completeness>=40?'#d97706':'#dc2626'}">${a.signalScan.completeness}%</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+          ${Object.entries(a.signalScan.checked).map(([k,v]) => {
+            const labels = { reachedDM: '👤 决策人', budget: '💰 预算', timeline: '📅 时间', pain: '🎯 痛点', competition: '🏢 竞品' };
+            return `<span style="padding:4px 10px;border-radius:16px;font-size:11px;background:${v?'#ecfdf5':'#f1f5f9'};color:${v?'#059669':'#94a3b8'};font-weight:500">${labels[k]}</span>`;
+          }).join('')}
+        </div>
+        ${a.signalScan.missing.length > 0 ? `
+        <div style="background:#fef2f2;padding:8px 12px;border-radius:6px;font-size:12px">
+          ⚡ 缺失信号：<strong>${a.signalScan.missing.join('、')}</strong> — 下次跟进重点突破
+        </div>` : '<div style="font-size:12px;color:#059669">✅ 5项关键信息全部到位，跟进质量很高</div>'}
+      </div>
+
+      <!-- Next Actions -->
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">🎯 下一步行动计划</div>
+        <div style="background:#f8fafc;border-radius:8px;padding:12px">
+          ${a.nextActions.map((act,i) => `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid #e2e8f0;line-height:1.6"><strong>${i+1}.</strong> ${act}</div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Strategies -->
+      ${a.strategies.length > 0 ? `
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">💡 针对性销售策略</div>
+        ${a.strategies.map(s => `<div style="font-size:12px;padding:6px 10px;margin-bottom:4px;background:#f0fdf4;border-radius:6px;line-height:1.6;border-left:3px solid #10b981">${s}</div>`).join('')}
+      </div>` : ''}
+
+      <!-- History Summary -->
+      ${a.followUpHistory.length > 0 ? `
+      <div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">📜 跟进轨迹</div>
+        ${a.followUpHistory.map(f => `
+        <div style="font-size:11px;padding:6px 0;border-bottom:1px solid #f1f5f9">
+          <span style="color:var(--tm)">${new Date(f.time).toLocaleDateString('zh-CN')}</span>
+          ${'⭐'.repeat(f.score)}${'☆'.repeat(5-f.score)}
+          ${f.signals.map(s=>`<span style="margin-left:6px;background:#e8f0fe;padding:1px 6px;border-radius:4px;font-size:10px">${s}</span>`).join('')}
+        </div>
+        `).join('')}
+      </div>` : '<div style="font-size:12px;color:var(--tm)">暂无跟进记录</div>'}
+    `;
+  } catch(e) {
+    document.getElementById('analyzeBody').innerHTML = '<div style="text-align:center;padding:40px;color:var(--d)">分析失败：' + e.message + '</div>';
+  }
+}
+
+// ===== AI QUALITY CHECK =====
+async function loadQualityCheck() {
+  const data = await api('GET', '/api/quality-check');
+  const content = document.getElementById('appContent');
+  content.innerHTML = `
+    <div class="stats">
+      <div class="stat red"><div class="stat-num">${data.stats.total}</div><div class="stat-label">总风险数</div></div>
+      <div class="stat"><div class="stat-num" style="color:#dc2626">${data.stats.high}</div><div class="stat-label">高风险</div></div>
+      <div class="stat"><div class="stat-num" style="color:#d97706">${data.stats.medium}</div><div class="stat-label">中风险</div></div>
+      <div class="stat blue"><div class="stat-num">${data.stats.low}</div><div class="stat-label">低风险</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>🛡️ 质检报告（近7天跟进记录）</h3><button class="btn btn-p btn-sm" onclick="loadQualityCheck()">🔄 重新扫描</button></div>
+      <div class="card-bd">
+        ${data.alerts.length === 0 ? '<div class="empty">✅ 未发现风险，跟进质量良好</div>' : data.alerts.map(a => `
+        <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;background:${a.risk_level==='high'?'#fef2f2':a.risk_level==='medium'?'#fffbeb':'#f8fafc'}">
+          <div style="font-size:${a.risk_level==='high'?'24px':'18px'}">${a.risk_level==='high'?'🔴':a.risk_level==='medium'?'🟡':'🔵'}</div>
+          <div style="flex:1">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+              <span class="badge" style="background:${a.risk_type==='违规话术'?'#fee2e2':'#dbeafe'};color:${a.risk_type==='违规话术'?'#991b1b':'#1e40af'}">${a.risk_type}</span>
+              <span style="font-size:10px;color:var(--tm)">${formatDt(a.created_at)}</span>
+            </div>
+            <div style="font-size:12px;line-height:1.6">${esc(a.description)}</div>
+          </div>
+          <button class="btn btn-s btn-sm" onclick="resolveAlert('${a.id}')">已处理</button>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--ts);background:var(--bg);padding:12px;border-radius:6px;margin-top:12px">
+      🛡️ <strong>质检规则</strong>：系统自动扫描每条跟进记录的①内容长度②决策人触达③预算确认④风险词(保证/最便宜/返点等)⑤下一步计划。发现问题立即标记风险等级。
+    </div>
+  `;
+}
+
+async function resolveAlert(id) {
+  await api('PUT', `/api/quality-check/${id}/resolve`);
+  loadQualityCheck();
+}
+
+// ===== WECHAT ASSISTANT =====
+async function loadWechatAssistant() {
+  const [kbData, leads] = await Promise.all([
+    api('GET', '/api/knowledge'),
+    api('GET', '/api/leads'),
+  ]);
+
+  const content = document.getElementById('appContent');
+  const activeLeads = leads.filter(l => l.status !== '已成交' && l.status !== '已丢单').slice(0, 10);
+
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-hd"><h3>🤖 微信智能助手</h3><span style="font-size:11px;color:var(--tm)">基于客户身份识别+知识库+销冠话术生成可发送消息</span></div>
+      <div class="card-bd" style="padding:16px">
+        <div class="fg"><label>选择客户</label>
+          <select id="wcLead" style="width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font-size:14px">
+            <option value="">— 选择一个客户 —</option>
+            ${activeLeads.map(l => `<option value="${l.id}">${l.name} · ${l.company} · ${l.grade}级</option>`).join('')}
+          </select>
+        </div>
+        <div class="fg"><label>客户最近说了什么（粘贴微信聊天内容）</label>
+          <textarea id="wcMessage" rows="2" placeholder="粘贴客户的原话，AI会分析身份并生成智能回复..." style="width:100%"></textarea>
+        </div>
+        <button class="btn btn-p btn-blk" style="padding:12px" onclick="generateSmartReply()">🤖 生成智能回复</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>📚 产品知识库 (${kbData.length}条)</h3><button class="btn btn-o btn-sm" onclick="openKBModal()">+ 添加</button></div>
+      <div style="padding:12px">
+        ${kbData.map(kb => `
+        <div style="padding:10px 0;border-bottom:1px solid var(--bd)">
+          <div style="font-weight:600;font-size:13px;margin-bottom:2px">${esc(kb.title)}</div>
+          <div style="font-size:11px;color:var(--ts);margin-bottom:4px">📂 ${esc(kb.category)} ${kb.tags ? '| 🏷 '+esc(kb.tags) : ''}</div>
+          <div style="font-size:12px;color:var(--t);line-height:1.7;white-space:pre-line">${esc(kb.content)}</div>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function generateSmartReply() {
+  const leadId = document.getElementById('wcLead').value;
+  const customerMessage = document.getElementById('wcMessage').value;
+  if (!leadId) return alert('请选择客户');
+  const result = await api('POST', '/api/ai/smart-reply', { leadId, customerMessage });
+
+  document.getElementById('analyzeBody').innerHTML = `
+    <div style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:16px">
+      <div style="font-size:13px"><strong>识别身份：</strong>${result.identity.honorific} · ${result.identity.role || '未识别'} · ${result.identity.gender==='female'?'女士':'先生'}</div>
+      ${result.relevantKB.length > 0 ? `<div style="font-size:11px;color:var(--ts);margin-top:4px">📚 引用知识：${result.relevantKB.map(k=>k.title).join(', ')}</div>` : ''}
+    </div>
+
+    ${result.replies.map(r => `
+    <div style="margin-bottom:16px;background:#fff;border:1px solid var(--bd);border-radius:8px;overflow:hidden">
+      <div style="padding:8px 14px;background:#f1f5f9;font-size:12px;font-weight:600">💬 ${r.type}</div>
+      <div style="padding:14px;font-size:13px;line-height:1.8;white-space:pre-line">${esc(r.content)}</div>
+    </div>
+    `).join('')}
+
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-o btn-sm" onclick="closeM('analyzeModal')">关闭</button>
+      <button class="btn btn-p btn-sm" onclick="navigator.clipboard.writeText('${result.replies[0]?.content?.replace(/'/g,"\\'").replace(/\n/g,'\\n')||''}');alert('已复制到剪贴板，可粘贴到微信发送')">📋 复制到剪贴板</button>
+    </div>
+  `;
+  document.getElementById('analyzeModal').classList.add('show');
+}
+
+// ===== PROCESS PERFORMANCE =====
+async function loadProcessPerf() {
+  const data = await api('GET', '/api/performance/process');
+  const content = document.getElementById('appContent');
+  const employees = data.employees || [];
+
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>⚡ 过程绩效看板</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>员工</th><th>总线索</th><th>跟进中</th><th>7日跟进</th><th>7日触达客户</th><th>有效沟通</th><th>高质量跟进</th><th>跟进率</th><th>转化率</th><th>平均质量</th>
+          </tr></thead>
+          <tbody>
+            ${employees.map(e => `<tr>
+              <td><strong>${esc(e.name)}</strong></td>
+              <td>${e.totalLeads}</td>
+              <td style="color:#1a56db;font-weight:600">${e.activeLeads}</td>
+              <td>${e.followUps7d}</td>
+              <td>${e.calledLeads7d}</td>
+              <td>${e.activeChats}</td>
+              <td>${e.effectiveChats}</td>
+              <td><span style="color:${e.followRate>=80?'#10b981':e.followRate>=50?'#d97706':'#dc2626'}">${e.followRate}%</span></td>
+              <td><span style="color:${e.conversionRate>=20?'#10b981':'#d97706'}">${e.conversionRate}%</span></td>
+              <td>${'⭐'.repeat(Math.round(e.avgScore))} ${e.avgScore}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px">
+      ${employees.map(e => `
+      <div style="background:var(--card);border-radius:8px;padding:14px;box-shadow:var(--sh)">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">${esc(e.name)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px">
+          <div>📝 总跟进: ${e.totalFollowUps}</div>
+          <div>📏 均长: ${e.avgFollowLength}字</div>
+          <div>📞 7日通话: ${e.calledLeads7d}人</div>
+          <div>✅ 有效: ${e.effectiveChats}条</div>
+          <div>⏳ 低质量: ${e.passiveReplies}条</div>
+          <div>📊 跟进率: ${e.followRate}%</div>
+          <div>🏆 转化: ${e.conversionRate}%</div>
+          <div>⭐ 质量: ${e.avgScore}/5</div>
+        </div>
+      </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ===== RESULT PERFORMANCE =====
+async function loadResultPerf() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  const [results, users] = await Promise.all([
+    api('GET', `/api/performance/results?year=${year}&month=${month}`),
+    api('GET', '/api/users'),
+  ]);
+
+  const salesUsers = users.filter(u => u.role === 'sales');
+  const content = document.getElementById('appContent');
+
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-hd"><h3>🎯 设定销售目标</h3></div>
+      <div style="padding:16px;display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:8px;align-items:end">
+        <div>
+          <label style="font-size:12px;font-weight:600">业务员</label>
+          <select id="tgUser" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;margin-top:4px">
+            ${salesUsers.map(u => `<option value="${u.id}">${u.display_name}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600">目标单数</label>
+          <input id="tgTarget" type="number" min="1" value="10" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;margin-top:4px">
+        </div>
+        <div style="font-size:12px;color:var(--ts);padding-top:20px">${year}年${month}月</div>
+        <button class="btn btn-p" onclick="setTarget()">设定</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>📊 ${year}年${month}月 结果绩效</h3></div>
+      <div class="card-bd" style="padding:16px">
+        ${results.results.map((r, i) => `
+        <div style="margin-bottom:16px;padding:14px;background:${i===0?'#f0fdf4':'#fff'};border-radius:8px;border:1px solid ${i===0?'#86efac':'var(--bd)'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div>
+              <strong>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'  '} ${esc(r.name)}</strong>
+              ${r.target > 0 ? `<span style="font-size:11px;color:var(--ts);margin-left:8px">目标: ${r.target}单</span>` : '<span style="font-size:11px;color:var(--tm);margin-left:8px">未设目标</span>'}
+            </div>
+            <div style="font-weight:700;font-size:${r.progress>=100?'20px':'16px'};color:${r.progress>=100?'#10b981':r.progress>=50?'#1a56db':'#d97706'}">${r.achieved}单 ${r.target>0?'/'+r.progress+'%':''}</div>
+          </div>
+          <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden">
+            <div style="height:100%;width:${Math.min(r.progress||(r.achieved*5),100)}%;background:${r.progress>=100?'linear-gradient(90deg,#10b981,#059669)':'linear-gradient(90deg,#1a56db,#3b82f6)'};border-radius:5px;transition:width 0.6s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ts);margin-top:6px">
+            <span>总线索: ${r.totalLeads} | 累计成交: ${r.totalWon}</span>
+            ${r.target>0?`<span>${r.progress>=100?'✅ 已达成！':r.progress>=80?'🟢 接近达成':'🟡 努力中'}</span>`:''}
+          </div>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function setTarget() {
+  const userId = document.getElementById('tgUser').value;
+  const target = parseInt(document.getElementById('tgTarget').value);
+  if (!target || target < 1) return alert('请输入有效目标');
+  const now = new Date();
+  await api('POST', '/api/targets', {
+    userId,
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+    target
+  });
+  alert('✅ 目标已设定');
+  loadResultPerf();
+}
+
+// ===== HELPER MODAL FOR KB =====
+async function openKBModal() {
+  document.getElementById('followBody').innerHTML = `
+    <div class="fg"><label>分类</label>
+      <select id="kbCat"><option>产品知识</option><option>话术技巧</option><option>行业知识</option><option>合规知识</option></select>
+    </div>
+    <div class="fg"><label>标题</label><input id="kbTitle"></div>
+    <div class="fg"><label>内容</label><textarea id="kbContent" rows="4"></textarea></div>
+    <div class="fg"><label>标签（逗号分隔）</label><input id="kbTags" placeholder="如: 电磁炉,节能,技巧"></div>
+  `;
+  document.getElementById('followModal').dataset.mode = 'kb';
+  document.getElementById('followModal').querySelector('h3').textContent = '📚 添加知识条目';
+  document.getElementById('followModal').querySelector('.modal-ft').innerHTML = `
+    <button class="btn btn-o" onclick="closeM('followModal')">取消</button>
+    <button class="btn btn-p" onclick="saveKB()">保存</button>
+  `;
+  document.getElementById('followModal').classList.add('show');
+}
+
+async function saveKB() {
+  const result = await api('POST', '/api/knowledge', {
+    category: document.getElementById('kbCat').value,
+    title: document.getElementById('kbTitle').value,
+    content: document.getElementById('kbContent').value,
+    tags: document.getElementById('kbTags').value,
+  });
+  if (result.error) return alert(result.error);
+  closeM('followModal');
+  loadWechatAssistant();
+}
+
+// ===== TODAY REMINDERS =====
+async function loadTodayReminders() {
+  const data = await api('GET', '/api/reminders/today');
+  const content = document.getElementById('appContent');
+  const priorityColors = { urgent: '#dc2626', high: '#d97706', normal: '#3b82f6' };
+  const priorityIcons = { urgent: '🔴', high: '🟡', normal: '🔵' };
+  const typeIcons = {
+    new_lead: '🆕', overdue: '⏰', quote: '💰', dormant: '💤', daily_quota: '📊'
+  };
+  const typeColors = {
+    new_lead: '#fee2e2', overdue: '#fffbeb', quote: '#f0fdf4', dormant: '#e2e8f0', daily_quota: '#eff6ff'
+  };
+
+  content.innerHTML = `
+    <div class="stats">
+      <div class="stat red"><div class="stat-num">${data.total}</div><div class="stat-label">待处理</div></div>
+      <div class="stat" style="color:#dc2626"><div class="stat-num" style="color:#dc2626">${data.urgent}</div><div class="stat-label">🔥 紧急</div></div>
+      <div class="stat"><div class="stat-num" style="color:#d97706">${data.high}</div><div class="stat-label">⚡ 高优先</div></div>
+      <div class="stat"><div class="stat-num">${data.todayCount}</div><div class="stat-label">今日跟进</div></div>
+      <div class="stat"><div class="stat-num">${data.target}</div><div class="stat-label">日目标</div></div>
+      <div class="stat" style="color:${data.todayCount>=data.target?'#10b981':'#d97706'}"><div class="stat-num" style="color:${data.todayCount>=data.target?'#10b981':'#d97706'}">${Math.round((data.todayCount/(data.target||1))*100)}%</div><div class="stat-label">完成度</div></div>
+    </div>
+
+    ${data.todayCount < data.target ? `
+    <div style="background:#fef2f2;padding:12px 16px;border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:24px">📊</span>
+      <div>
+        <strong style="color:#dc2626">今日工作量不足</strong>
+        <div style="font-size:12px;color:#991b1b">已完成${data.todayCount}条，距目标${data.target}条还差${data.target-data.todayCount}条，继续加油！</div>
+      </div>
+    </div>
+    ` : (data.todayCount >= data.target ? `<div style="background:#ecfdf5;padding:12px 16px;border-radius:8px;margin-bottom:12px">✅ 今日已达目标！已完成${data.todayCount}/${data.target}条</div>` : '')}
+
+    <div class="card">
+      <div class="card-hd"><h3>🔔 优先处理清单（按紧急程度排序）</h3><button class="btn btn-p btn-sm" onclick="loadTodayReminders()">🔄 刷新</button></div>
+      <div class="card-bd" style="padding:0">
+        ${data.items.length === 0 ? '<div class="empty">🎉 暂无待办，继续保持！</div>' : data.items.map((item, i) => `
+        <div style="padding:14px 16px;border-bottom:1px solid var(--bd);background:${typeColors[item.type]||'#fff'};display:flex;gap:10px;align-items:flex-start;cursor:pointer" onclick="${item.leadId ? `openFollowup('${item.leadId}')` : `switchPage('leads')`}">
+          <div style="font-size:28px;min-width:32px;text-align:center">${typeIcons[item.type]||'•'}</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-weight:700;font-size:14px">${item.title}</span>
+              <span class="badge" style="background:${priorityColors[item.priority]}20;color:${priorityColors[item.priority]};font-size:10px">
+                ${priorityIcons[item.priority]} ${item.priority==='urgent'?'紧急':item.priority==='high'?'高优先':'一般'}
+              </span>
+            </div>
+            ${item.leadName ? `<div style="font-size:13px;font-weight:500">${esc(item.leadName)} · ${esc(item.leadCompany)} <span class="badge badge-${item.grade?.toLowerCase()}">${item.grade}级</span></div>` : ''}
+            <div style="font-size:12px;color:var(--ts);margin-top:4px">${item.desc}</div>
+          </div>
+          <button class="btn btn-p btn-sm" style="flex-shrink:0;min-width:60px">${item.action}</button>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--ts);background:var(--bg);padding:12px;border-radius:6px;margin-top:12px">
+      💡 <strong>智能提醒规则</strong>：A高意向4h/B中意向24h/C低意向72h超时提醒 | 新线索30分钟触达 | 报价2天跟进 | 沉睡7天激活 | 每日工作目标${data.target}条（下午3点不足提醒）
+    </div>
+  `;
+}
+
+// ===== REMINDER CONFIG (admin) =====
+async function loadReminderConfig() {
+  const config = await api('GET', '/api/reminder-config');
+  const content = document.getElementById('appContent');
+  content.innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>⚙️ 提醒规则配置</h3><span style="font-size:11px;color:var(--tm)">修改后自动生效，每5分钟检查一次</span></div>
+      <div style="padding:16px">
+        ${config.map(c => `
+        <div style="padding:12px;margin-bottom:8px;background:#f8fafc;border-radius:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:600;font-size:13px">${esc(c.rule_name)}</div>
+            <div style="font-size:11px;color:var(--ts)">${esc(c.description)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="cfg_${c.id}" value="${c.rule_value}" style="width:80px;padding:6px;border:1px solid var(--bd);border-radius:4px;text-align:center;font-size:14px">
+            <span style="font-size:12px;color:var(--ts)">${c.rule_key.includes('remind') ? '小时' : c.rule_key.includes('target') ? '条/天' : '分钟'}</span>
+            <button class="btn btn-p btn-sm" onclick="saveReminderConfig('${c.id}')">保存</button>
+          </div>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+    <div style="margin-top:12px;background:var(--bg);padding:16px;border-radius:8px">
+      <strong style="font-size:13px">📋 提醒类型说明</strong>
+      <div style="font-size:12px;color:var(--ts);margin-top:8px;line-height:2">
+        🆕 <strong>新线索首次提醒</strong>：新分配线索超过N分钟未联系 → 强提醒<br>
+        🔥/🟡/🔵 <strong>分级跟进间隔</strong>：A/B/C级分别超N小时后 → 提醒跟进<br>
+        📊 <strong>每日工作目标</strong>：低于N条/天 → 下午3点提醒<br>
+        💰 <strong>报价跟进</strong>：报价超过N天 → 强制提醒<br>
+        💤 <strong>沉睡激活</strong>：超过N天未联系 → 激活提醒<br>
+        🌊 <strong>公海回收</strong>：严重超时 → 自动进入公海池（不可配置）
+      </div>
+    </div>
+  `;
+}
+
+async function saveReminderConfig(id) {
+  const val = document.getElementById('cfg_' + id).value;
+  await api('PUT', '/api/reminder-config/' + id, { value: val });
+  alert('✅ 规则已更新');
+}
+
+async function aiOptimizeReminders() {
+  if (!confirm('AI将分析所有已成交/已丢单数据，自动推荐最优提醒规则。继续？')) return;
+  document.getElementById('appContent').innerHTML += '<div style="text-align:center;padding:40px;color:var(--tm)">🤖 AI正在分析转化数据...</div>';
+  const result = await api('POST', '/api/ai/optimize-reminders');
+  if (result.error) return alert('❌ ' + result.error);
+
+  document.getElementById('appContent').innerHTML = `
+    <div class="card">
+      <div class="card-hd"><h3>🤖 AI 优化建议</h3><button class="btn btn-o btn-sm" onclick="loadReminderConfig()">返回配置</button></div>
+      <div style="padding:16px">
+        ${result.suggestions.map(s => `
+        <div style="padding:14px;margin-bottom:10px;background:#f8fafc;border-radius:8px;border-left:4px solid ${s.suggested < s.current ? '#10b981' : s.suggested > s.current ? '#dc2626' : '#3b82f6'}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <strong style="font-size:14px">📋 ${s.reason.split(':')[0]||'优化建议'}</strong>
+            <span class="badge" style="background:${s.suggested!==s.current?'#fef2f2':'#ecfdf5'};color:${s.suggested!==s.current?'#dc2626':'#059669'}">
+              当前 ${s.current} → 建议 ${s.suggested}
+            </span>
+          </div>
+          <div style="font-size:12px;color:var(--ts);margin-bottom:8px">${s.reason}</div>
+          <button class="btn btn-s btn-sm" onclick="applyAiSuggest('${s.rule_key}', ${s.suggested})">✅ 采纳此建议</button>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function applyAiSuggest(key, value) {
+  const config = await api('GET', '/api/reminder-config');
+  const item = config.find(c => c.rule_key === key);
+  if (item) {
+    await api('PUT', '/api/reminder-config/' + item.id, { value: String(value) });
+    alert('✅ 已应用AI建议');
+    aiOptimizeReminders();
+  }
+}
+
+// ===== OPS MONITOR =====
+async function loadOpsMonitor() {
+  const data = await api('GET', '/api/ops-monitor');
+  const content = document.getElementById('appContent');
+  const s = data.summary;
+
+  content.innerHTML = `
+    <div class="stats">
+      <div class="stat blue"><div class="stat-num">${s.totalSales}</div><div class="stat-label">业务员</div></div>
+      <div class="stat"><div class="stat-num">${s.totalLeads}</div><div class="stat-label">总线索</div></div>
+      <div class="stat green"><div class="stat-num">${s.totalWon}</div><div class="stat-label">已成交</div></div>
+      <div class="stat red"><div class="stat-num">${s.totalOverdue}</div><div class="stat-label">超时未跟进</div></div>
+      <div class="stat"><div class="stat-num">${s.totalTodayActivity}</div><div class="stat-label">今日活动</div></div>
+    </div>
+
+    ${data.sales.map((r, i) => `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-hd">
+        <h3>
+          ${i===0?'🥇':i===1?'🥈':i===2?'🥉':'👤'} ${esc(r.name)}
+          <span style="font-size:11px;margin-left:8px;color:${r.status==='good'?'#10b981':r.status==='danger'?'#dc2626':'#d97706'}">
+            ${r.status==='good'?'✅ 正常':r.status==='danger'?'🔴 需关注':'🟡 有超时'}
+          </span>
+          ${r.isLocked?'<span style="color:var(--d)">🔒 已锁定</span>':''}
+        </h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:12px;color:var(--ts)">最后活动: ${r.lastActivity}</span>
+          <span style="font-weight:600;font-size:13px">今日: ${r.todayFU+r.todayInput}条</span>
+        </div>
+      </div>
+      <div style="padding:12px 16px">
+        <!-- Pipeline -->
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          ${['newLeads','contacted','communicating','quoting','won','lost'].map(stage => {
+            const labels = { newLeads: '🆕新线索', contacted: '📞已联系', communicating: '💬沟通中', quoting: '💰报价中', won: '✅成交', lost: '❌丢单' };
+            const colors = { newLeads: '#dbeafe', contacted: '#fef3c7', communicating: '#ede9fe', quoting: '#cffafe', won: '#d1fae5', lost: '#fee2e2' };
+            const txtColors = { newLeads: '#1e40af', contacted: '#92400e', communicating: '#6b21a8', quoting: '#155e75', won: '#065f46', lost: '#991b1b' };
+            const count = r.stageStats[stage] || 0;
+            const total = r.totalLeads || 1;
+            return `<div style="flex:1;text-align:center;padding:8px 4px;background:${colors[stage]};border-radius:6px;font-size:11px">
+              <div style="font-size:16px;font-weight:700;color:${txtColors[stage]}">${count}</div>
+              <div style="color:${txtColors[stage]};font-size:10px">${labels[stage]}</div>
+              <div style="height:3px;background:rgba(0,0,0,.1);border-radius:2px;margin-top:4px">
+                <div style="height:100%;width:${Math.round(count/total*100)}%;background:${txtColors[stage]};border-radius:2px"></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <!-- Action buttons -->
+        <div style="display:flex;gap:6px;font-size:11px;flex-wrap:wrap">
+          <span style="color:var(--ts)">跟进中: ${r.activeLeads} | 成交: ${r.wonLeads} | 超时: <span style="color:${r.overdue>0?'var(--d)':'var(--s)'}">${r.overdue}</span></span>
+        </div>
+      </div>
+    </div>
+    `).join('')}
+
+    <div style="background:var(--bg);padding:12px;border-radius:8px;font-size:12px;line-height:1.8;margin-top:12px">
+      💡 <strong>运营闭环说明</strong><br>
+      📋 <strong>筛选</strong>：运营录入线索 → 分配给业务 → 🆕新线索<br>
+      📞 <strong>确认</strong>：业务首次联系 → 确认客户意向 → 📞已联系<br>
+      💬 <strong>追销</strong>：深挖需求/发方案/报价 → 💬沟通中→💰报价中<br>
+      ✅ <strong>成交</strong>：签单 → ✅成交 / ❌丢单<br>
+      <span style="color:var(--ts)">运营通过此看板实时监控每个业务的转化进度，发现瓶颈及时介入</span>
+    </div>
+  `;
+}
+
+// ===== HELPERS =====
+function esc(s) { if (!s) return ''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function formatDt(dt) { if (!dt) return '—'; const d=new Date(dt); const n=new Date(); const diff=(n-d)/3600000; if(diff<1) return Math.max(1,Math.floor(diff*60))+'分钟前'; if(diff<24) return Math.floor(diff)+'小时前'; if(diff<720) return Math.floor(diff/24)+'天前'; return d.toLocaleDateString('zh-CN',{month:'short',day:'numeric'}); }
+function closeM(id) { document.getElementById(id).classList.remove('show'); }
+
+async function loadSalesReps() {
+  try {
+    const users = await api('GET', '/api/users');
+    return users.filter(u => u.role === 'sales');
+  } catch(e) { return []; }
+}
+
+// ===== INIT =====
+document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+// Check if there's a stored token (for session persistence)
+const storedToken = localStorage.getItem('lead_token');
+if (storedToken) {
+  token = storedToken;
+  fetch('/api/me', { headers: { 'Authorization': token } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.id) {
+        me = data;
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('appMain').classList.add('active');
+        connectWS();
+        renderApp();
+        loadNotificationSound();
+      } else {
+        localStorage.removeItem('lead_token');
+      }
+    })
+    .catch(() => localStorage.removeItem('lead_token'));
+}
+
+// Store token on successful login
+const origLogin = doLogin;
+doLogin = async function() {
+  await origLogin();
+  if (token) localStorage.setItem('lead_token', token);
+};
+
+const origLogout = doLogout;
+doLogout = function() {
+  localStorage.removeItem('lead_token');
+  origLogout();
+};
+</script>
+</body>
+</html>

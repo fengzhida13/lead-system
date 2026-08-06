@@ -1,0 +1,16 @@
+{
+  "name": "lead-system",
+  "version": "1.0.0",
+  "description": "商厨设备线索管理系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.18.2",
+    "sql.js": "^1.14.1",
+    "uuid": "^9.0.0",
+    "ws": "^8.16.0"
+  }
+}
