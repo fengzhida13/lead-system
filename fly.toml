@@ -1,0 +1,19 @@
+app = "lead-system"
+primary_region = "hkg"
+
+[build]
+  builder = "heroku/buildpacks:20"
+  [build.args]
+    NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3456
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
